@@ -5,8 +5,8 @@ type Props = {
 };
 
 const Button: FC<Props> = ({ onCustomClick }) => (
-  <button onClick={onCustomClick} style={{ backgroundColor: "yellow" }}>
-    App 2 Button
+  <button onClick={onCustomClick} style={{ backgroundColor: "red" }}>
+    App 3 Button
   </button>
 );
 

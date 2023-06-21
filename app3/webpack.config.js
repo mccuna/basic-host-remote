@@ -1,17 +1,15 @@
-// @ts-check
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
 const path = require("path");
 const { FederatedTypesPlugin } = require("@module-federation/typescript");
 const { ProvidePlugin } = require("webpack");
-const ExternalTemplateRemotesPlugin = require("external-remotes-plugin");
 
 const federationConfig = {
-  name: "app1",
-  filename: "mainEntry.js",
-  remotes: {
-    app2: `app2@[window.app2Url]/remoteEntry.js`,
-    app3: `app3@[window.app3Url]/remoteEntry.js`,
+  name: "app3",
+  library: { type: "var", name: "app3" },
+  filename: "remoteEntry.js",
+  exposes: {
+    "./Button": "./src/Button",
   },
   shared: { react: { singleton: true }, "react-dom": { singleton: true } },
 };
@@ -23,7 +21,7 @@ module.exports = {
     static: {
       directory: path.join(__dirname, "dist"),
     },
-    port: 3001,
+    port: 3003,
   },
   output: {
     publicPath: "auto",
@@ -43,22 +41,14 @@ module.exports = {
   resolve: {
     extensions: [".tsx", ".ts", ".jsx", ".js"],
   },
-  //http://localhost:3002/remoteEntry.js
   plugins: [
     new ProvidePlugin({
       React: "react",
     }),
     new ModuleFederationPlugin(federationConfig),
     new FederatedTypesPlugin({
-      federationConfig: {
-        ...federationConfig,
-        remotes: {
-          app2: `app2@http://localhost:3002/remoteEntry.js`,
-          app3: `app3@http://localhost:3003/remoteEntry.js`,
-        },
-      },
+      federationConfig,
     }),
-    new ExternalTemplateRemotesPlugin(),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
