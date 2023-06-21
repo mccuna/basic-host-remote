@@ -7,7 +7,7 @@ const { ProvidePlugin } = require("webpack");
 const federationConfig = {
   name: "app2",
   library: { type: "var", name: "app2" },
-  filename: "remoteEntry.js",
+  filename: "app2Entry.js",
   exposes: {
     "./Button": "./src/Button",
   },
