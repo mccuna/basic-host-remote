@@ -1,6 +1,18 @@
+// @ts-check
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
 const path = require("path");
+const { FederatedTypesPlugin } = require("@module-federation/typescript");
+const { ProvidePlugin } = require("webpack");
+
+const federationConfig = {
+  name: "app1",
+  filename: "mainEntry.js",
+  remotes: {
+    app2: `app2@http://localhost:3002/remoteEntry.js`,
+  },
+  shared: { react: { singleton: true }, "react-dom": { singleton: true } },
+};
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -31,30 +43,15 @@ module.exports = {
   },
   //http://localhost:3002/remoteEntry.js
   plugins: [
-    new ModuleFederationPlugin({
-      name: "app1",
-      remotes: {
-        app2: `app2@${getRemoteEntryUrl(3002)}`,
-      },
-      shared: { react: { singleton: true }, "react-dom": { singleton: true } },
+    new ProvidePlugin({
+      React: "react",
+    }),
+    new ModuleFederationPlugin(federationConfig),
+    new FederatedTypesPlugin({
+      federationConfig,
     }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
   ],
 };
-
-function getRemoteEntryUrl(port) {
-  const { CODESANDBOX_SSE, HOSTNAME = "" } = process.env;
-
-  // Check if the example is running on codesandbox
-  // https://codesandbox.io/docs/environment
-  if (!CODESANDBOX_SSE) {
-    return `//localhost:${port}/remoteEntry.js`;
-  }
-
-  const parts = HOSTNAME.split("-");
-  const codesandboxId = parts[parts.length - 1];
-
-  return `//${codesandboxId}-${port}.sse.codesandbox.io/remoteEntry.js`;
-}

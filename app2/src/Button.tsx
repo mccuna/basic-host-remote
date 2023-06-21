@@ -1,5 +1,9 @@
-import React from 'react';
+import { FC } from "react";
 
-const Button = () => <button>App 2 Button</button>;
+type Props = {
+  onCustomClick: () => void;
+};
+
+const Button: FC<Props> = ({ onCustomClick }) => <button onClick={onCustomClick}>App 2 Button</button>;
 
 export default Button;
