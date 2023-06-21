@@ -1,31 +1,27 @@
-// @ts-check
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { ModuleFederationPlugin } = require("webpack").container;
 const path = require("path");
 const { FederatedTypesPlugin } = require("@module-federation/typescript");
 const { ProvidePlugin } = require("webpack");
-const ExternalTemplateRemotesPlugin = require("external-remotes-plugin");
-require("dotenv").config();
 
-const getFederationConfig = () => {
-  return {
-    name: "app1",
-    filename: "mainEntry.js",
-    remotes: {
-      app2: `app2@${process.env.APP2_URL}/app2Entry.js`,
-    },
-    shared: { react: { singleton: true }, "react-dom": { singleton: true } },
-  };
+const federationConfig = {
+  name: "app3",
+  library: { type: "var", name: "app3" },
+  filename: "app3V2Entry.js",
+  exposes: {
+    "./Button": "./src/Button",
+  },
+  shared: { react: { singleton: true }, "react-dom": { singleton: true } },
 };
 
-module.exports = () => ({
+module.exports = {
   entry: "./src/index.tsx",
   mode: "development",
   devServer: {
     static: {
       directory: path.join(__dirname, "dist"),
     },
-    port: 3001,
+    port: 3004,
   },
   output: {
     publicPath: "auto",
@@ -49,23 +45,12 @@ module.exports = () => ({
     new ProvidePlugin({
       React: "react",
     }),
-    new ModuleFederationPlugin(getFederationConfig()),
-    new ExternalTemplateRemotesPlugin(),
+    new ModuleFederationPlugin(federationConfig),
+    new FederatedTypesPlugin({
+      federationConfig,
+    }),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
-  ].concat(
-    process.env.NODE_ENV === "development"
-      ? [
-          new FederatedTypesPlugin({
-            federationConfig: {
-              ...getFederationConfig(),
-              remotes: {
-                app2: `app2@${process.env.APP2_URL}/app2Entry.js`,
-              },
-            },
-          }),
-        ]
-      : []
-  ),
-});
+  ],
+};
