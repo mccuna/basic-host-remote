@@ -4,12 +4,13 @@ const { ModuleFederationPlugin } = require("webpack").container;
 const path = require("path");
 const { FederatedTypesPlugin } = require("@module-federation/typescript");
 const { ProvidePlugin } = require("webpack");
+const ExternalTemplateRemotesPlugin = require("external-remotes-plugin");
 
 const federationConfig = {
   name: "app1",
   filename: "mainEntry.js",
   remotes: {
-    app2: `app2@http://localhost:3002/remoteEntry.js`,
+    app2: `app2@[window.app2Url]/remoteEntry.js`,
   },
   shared: { react: { singleton: true }, "react-dom": { singleton: true } },
 };
@@ -48,8 +49,14 @@ module.exports = {
     }),
     new ModuleFederationPlugin(federationConfig),
     new FederatedTypesPlugin({
-      federationConfig,
+      federationConfig: {
+        ...federationConfig,
+        remotes: {
+          app2: `app2@http://localhost:3002/remoteEntry.js`,
+        },
+      },
     }),
+    new ExternalTemplateRemotesPlugin(),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
